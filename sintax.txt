@@ -24,6 +24,9 @@ docker rm <container-name>
 # Remove an image
 docker rmi <image-name>
 
+# Remove all image
+docker rmi -f $(docker images -q)
+
 # Run a command in a running container
 docker exec -it <container-name> <command>
 
