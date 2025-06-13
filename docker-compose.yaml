@@ -1,0 +1,115 @@
+version: "3.9"
+
+services:
+  webserver:
+    # menggunakan image nginx versi terbaru
+    image: nginx:latest
+    container_name: webserver_docker
+    restart: unless-stopped
+    tty: true
+    # mapping port 1011 dari host ke port 80 di container
+    ports:
+      - "1011:80"
+    # mount volume src/backend ke /var/www di container
+    volumes:
+      - ./src/backend:/var/www
+      # mount volume docker/nginx/conf.d ke /etc/nginx/conf.d di container
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+    # container webserver akan berjalan setelah container php berjalan
+    depends_on:
+      - php
+    # container webserver akan tergabung dalam jaringan laravel_docker-networks
+    networks:
+      - laravel_docker-networks
+
+  php:
+    # menggunakan Dockerfile yang ada di root project
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: php_docker
+    restart: unless-stopped
+    tty: true
+    # set working directory di container menjadi /var/www
+    working_dir: /var/www
+    # mapping volume src/backend ke /var/www di container
+    volumes:
+      - ./src/backend:/var/www
+      # mapping volume php/local.ini ke /usr/local/etc/php/conf.d/local.ini di container
+      - ./php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    # container php akan tergabung dalam jaringan laravel_docker-networks
+    networks:
+      - laravel_docker-networks
+
+  db:
+    # menggunakan image mysql versi 8
+    image: mysql:8
+    container_name: db_docker
+    restart: unless-stopped
+    tty: true
+    # mapping port 4306 dari host ke port 3306 di container
+    ports:
+      - "4306:3306"
+    # set environment variable untuk mysql
+    environment:
+      MYSQL_DATABASE: db_docker
+      MYSQL_USER: user
+      MYSQL_PASSWORD: user
+      MYSQL_ROOT_PASSWORD: root
+    # mapping volume db:/var/lib/mysql di container
+    volumes:
+      - db:/var/lib/mysql
+    # container db akan tergabung dalam jaringan laravel_docker-networks
+    networks:
+      - laravel_docker-networks
+
+  phpmyadmin:
+    # menggunakan image phpmyadmin versi terbaru
+    image: phpmyadmin:latest
+    container_name: phpmyadmin_docker
+    restart: unless-stopped
+    # mapping port 1002 dari host ke port 80 di container
+    ports:
+      - "1002:80"
+    # set environment variable untuk phpmyadmin
+    environment:
+       PMA_HOST: ${PMA_HOST:-db}  # default ke 'db' (dari Docker), bisa diganti lewat environment
+       PMA_PORT: 3306
+    # container phpmyadmin akan berjalan setelah container db berjalan
+    depends_on:
+      - db
+    # container phpmyadmin akan tergabung dalam jaringan laravel_docker-networks
+    networks:
+      - laravel_docker-networks
+
+  frontend:
+    # menggunakan Dockerfile yang ada di src/frontend
+    build:
+      context: ./src/frontend
+      dockerfile: Dockerfile
+    container_name: frontend_docker
+    # mapping port 3000 dari host ke port 3000 di container
+    ports:
+      - "3000:3000"
+    # mapping volume src/frontend ke /app di container
+    volumes:
+      - ./src/frontend:/app
+    # set environment variable NODE_ENV=development
+    environment:
+      - NODE_ENV=development
+    # container frontend akan tergabung dalam jaringan laravel_docker-networks
+    networks:
+      - laravel_docker-networks
+    # command untuk menjalankan npm run dev
+    command: npm run dev
+
+# jaringan bridge
+networks:
+  laravel_docker-networks:
+    driver: bridge
+
+# volume untuk db
+volumes:
+  db:
+    driver: local
+

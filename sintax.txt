@@ -1,0 +1,56 @@
+# Docker commands
+
+# Build an image from a Dockerfile
+docker build -t <image-name> .
+
+# Run a container from an image
+docker run -d --name <container-name> -p <host-port>:<container-port> <image-name>
+
+# List all running containers
+docker ps
+
+# List all containers (including stopped ones)
+docker ps -a
+
+# Stop a container
+docker stop <container-name>
+
+# Start a stopped container
+docker start <container-name>
+
+# Remove a container
+docker rm <container-name>
+
+# Remove an image
+docker rmi <image-name>
+
+# Run a command in a running container
+docker exec -it <container-name> <command>
+
+# Copy a file from a container to the host
+docker cp <container-name>:/path/to/file /path/to/host
+
+# Copy a file from the host to a container
+docker cp /path/to/host /path/to/container
+
+# Create a Docker Compose file
+docker-compose build
+
+# Start a Docker Compose service
+docker-compose up
+
+# Stop a Docker Compose service
+docker-compose down
+
+# List all Docker Compose services
+docker-compose ps
+
+# Get logs from a Docker Compose service
+docker-compose logs
+
+# Get logs from a Docker Compose service with follow
+docker-compose logs -f
+
+# Run a command in a Docker Compose service
+docker-compose exec <service-name> <command>
+
